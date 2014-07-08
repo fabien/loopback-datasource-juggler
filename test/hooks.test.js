@@ -88,6 +88,26 @@ describe('hooks', function () {
         done();
       });
     });
+
+    it('afterCreate should not be triggered on failed beforeCreate', function (done) {
+      User.beforeCreate = function (next, data, callback) {
+        // Skip next()
+        callback(new Error('fail in beforeCreate'));
+      };
+
+      var old = User.dataSource.connector.create;
+      User.dataSource.connector.create = function (modelName, id, cb) {
+        throw new Error('shouldn\'t be called');
+      }
+
+      User.afterCreate = function () {
+        throw new Error('shouldn\'t be called');
+      };
+      User.create(function (err, user) {
+        User.dataSource.connector.create = old;
+        done();
+      });
+    });
   });
 
   describe('save', function () {
@@ -169,6 +189,18 @@ describe('hooks', function () {
               done();
             });
           });
+        });
+      });
+    });
+
+    it('beforeSave should be able to skip next', function (done) {
+      User.create(function (err, user) {
+        User.beforeSave = function (next, data, cb) {
+          cb(null, 'XYZ');
+        };
+        user.save(function(err, result) {
+          result.should.be.eql('XYZ');
+          done();
         });
       });
     });
