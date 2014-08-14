@@ -558,6 +558,41 @@ describe('relations', function () {
   
   });
   
+  describe('hasMany with primaryKey override', function () {
+    it('can be declared with properties', function (done) {
+      db = getSchema();
+      Category = db.define('Category', {name: String});
+      Product = db.define('Product', {name: String, alias: String});
+
+      Category.hasMany(Product, { options: { primaryKey: 'alias' } });
+      Product.belongsTo(Category);
+      Product.validatesUniquenessOf('alias', { scopedTo: ['categoryId'] });
+      db.automigrate(done);
+    });
+    
+    it('should create record on scope', function (done) {
+      Category.create(function (err, c) {
+        c.products.create({ name: 'Book', alias: 'book' }, function(err, p) {
+          p.categoryId.should.equal(c.id);
+          c.products.create({ name: 'Widget', alias: 'widget' }, function(err, p) {
+            p.categoryId.should.equal(c.id);
+            done();
+          });
+        });
+      });
+    });
+    
+    it('should find record on scope - by override property', function (done) {
+      Category.findOne(function (err, c) {
+        c.products.findById('book', function(err, p) {
+          p.name.should.equal('Book');
+          done();
+        });
+      });
+    });
+    
+  });
+  
   describe('polymorphic hasOne', function () {
     before(function (done) {
       db = getSchema();
