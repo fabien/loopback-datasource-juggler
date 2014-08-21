@@ -280,11 +280,36 @@ describe('validations', function () {
   });
 
   describe('inclusion', function () {
-    it('should validate inclusion');
+    it('should validate inclusion', function() {
+      User.validatesInclusionOf('name', {in: ['root', 'admin']});
+      var u = new User({name: 'other'});
+      Boolean(u.isValid()).should.be.false;
+      u.errors.codes.should.eql({ name: ['inclusion'] });
+    });
+    it('should skip validation if allowBlank', function() {
+      User.validatesInclusionOf('name', {in: ['root', 'admin'], allowBlank: true});
+      var u = new User({});
+      Boolean(u.isValid()).should.be.true;
+    });
+    it('should skip validation if in range is empty', function() {
+      User.validatesInclusionOf('name', {in: []});
+      var u = new User({name: 'other'});
+      Boolean(u.isValid()).should.be.true;
+    });
   });
 
   describe('exclusion', function () {
-    it('should validate exclusion');
+    it('should validate exclusion', function() {
+      User.validatesExclusionOf('name', {in: ['root', 'admin']});
+      var u = new User({name: 'root'});
+      Boolean(u.isValid()).should.be.false;
+      u.errors.codes.should.eql({ name: ['exclusion'] });
+    });
+    it('should skip validation if allowBlank', function() {
+      User.validatesExclusionOf('name', {in: ['root', 'admin'], allowBlank: true});
+      var u = new User({});
+      Boolean(u.isValid()).should.be.true;
+    });
   });
 
   describe('length', function () {
