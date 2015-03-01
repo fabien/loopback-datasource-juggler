@@ -72,14 +72,15 @@ describe('Memory connector', function() {
 
     it('should persist delete', function(done) {
       // Now try to delete one
-      User.deleteById(ids[0], function(err) {
+      User.deleteById(ids[0], function (err, deleted) {
         if (err) {
           return done(err);
         }
-        readModels(function(err, json) {
+        assert(deleted);
+        readModels(function (err, json) {
           if (err) {
             return done(err);
-          }
+          }  
           assert.equal(Object.keys(json.models.User).length, 2);
           done();
         });
