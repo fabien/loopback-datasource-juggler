@@ -4709,6 +4709,8 @@ describe('relations', function () {
         reverse: reverse
       } });
 
+      Job.hasMany(Category, { foreignKey: 'jobIds', options: { referencesMany: true } });
+
       Category.prototype['__reverse__jobs'].should.be.a.function;
       should.exist(Category.prototype['__reverse__jobs'].shared);
       Category.prototype['__reverse__jobs'].http.should.eql(reverse.http);
@@ -4907,6 +4909,25 @@ describe('relations', function () {
         cat.jobs.should.have.length(2);
         cat.jobs[0].id.should.eql(job3.id);
         cat.jobs[1].id.should.eql(job2.id);
+        done();
+      });
+    });
+
+    it('should find inversely related items', function(done) {
+      Job.findById(job2.id, function(err, job) {
+        job.categories(function(err, categories) {
+          categories.should.have.length(1);
+          categories[0].name.should.equal('Category A');
+          done();
+        });
+      });
+    });
+
+    it('should include inversely related items', function(done) {
+      Job.findById(job2.id, { include: 'categories' }, function(err, job) {
+        var categories = job.categories();
+        categories.should.have.length(1);
+        categories[0].name.should.equal('Category A');
         done();
       });
     });
